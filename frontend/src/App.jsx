@@ -4,13 +4,14 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { Toaster } from 'react-hot-toast';
 import useStore from './context/store';
 
-import Layout       from './components/layout/Layout';
-import LoginPage    from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
-import CompaniesPage from './pages/CompaniesPage';
-import ContactsPage  from './pages/ContactsPage';
-import SendPage      from './pages/SendPage';
-import HistoryPage   from './pages/HistoryPage';
+import Layout         from './components/layout/Layout';
+import LoginPage      from './pages/LoginPage';
+import DashboardPage  from './pages/DashboardPage';
+import CompaniesPage  from './pages/CompaniesPage';
+import ContactsPage   from './pages/ContactsPage';
+import SendPage       from './pages/SendPage';
+import HistoryPage    from './pages/HistoryPage';
+import OptOutsPage    from './pages/OptOutsPage'; // ✅ NEW
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30000, refetchOnWindowFocus: false } },
@@ -45,6 +46,7 @@ export default function App() {
             <Route path="contacts"   element={<ContactsPage />} />
             <Route path="send"       element={<SendPage />} />
             <Route path="history"    element={<HistoryPage />} />
+            <Route path="opt-outs"   element={<OptOutsPage />} /> {/* ✅ NEW */}
           </Route>
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

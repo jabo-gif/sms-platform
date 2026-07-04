@@ -6,27 +6,18 @@ const api = axios.create({
   timeout: 10000,
 });
 
-// Attach token to every request
 api.interceptors.request.use(config => {
-  // Check localStorage directly
   let token = localStorage.getItem('token');
-
-  // Also check Zustand persisted store
   if (!token) {
     try {
       const stored = JSON.parse(localStorage.getItem('sms-store'));
       token = stored?.state?.token;
     } catch {}
   }
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Handle errors globally
 api.interceptors.response.use(
   res => res.data,
   err => {
@@ -59,12 +50,19 @@ export const companiesAPI = {
 };
 
 export const contactsAPI = {
-  list:      (params) => api.get('/contacts',              { params }),
-  byCompany: (id)     => api.get(`/contacts/by-company/${id}`),
-  create:    (data)   => api.post('/contacts', data),
-  update:    (id, d)  => api.put(`/contacts/${id}`, d),
-  delete:    (id)     => api.delete(`/contacts/${id}`),
-  bulkDelete:(ids)    => api.post('/contacts/bulk-delete', { ids }),
+  list:        (params) => api.get('/contacts',              { params }),
+  byCompany:   (id)     => api.get(`/contacts/by-company/${id}`),
+  create:      (data)   => api.post('/contacts', data),
+  update:      (id, d)  => api.put(`/contacts/${id}`, d),
+  delete:      (id)     => api.delete(`/contacts/${id}`),
+  bulkDelete:  (ids)    => api.post('/contacts/bulk-delete', { ids }),
+  resubscribe: (id)     => api.put(`/contacts/${id}/resubscribe`),
+};
+
+// ── NEW: Opt-out API ────────────────────────────────────────────────────────
+export const optOutAPI = {
+  list:    (params) => api.get('/opt-outs', { params }),
+  replies: (params) => api.get('/opt-outs/replies', { params }),
 };
 
 export const messagesAPI = {

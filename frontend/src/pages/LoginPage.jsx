@@ -213,7 +213,7 @@ export default function LoginPage() {
                 <input
                   type="email"
                   required
-                  placeholder="admin@smsplatform.rw"
+                  placeholder="Email Address"
                   value={form.email}
                   onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                   style={inputStyle}

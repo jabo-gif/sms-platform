@@ -1,6 +1,7 @@
 const AfricasTalking = require('africastalking');
 const axios = require('axios');
 const logger = require('../utils/logger');
+const { appendOptOutFooter, normalizePhone } = require('./optOutService');
 
 // ─── Africa's Talking SMS ─────────────────────────────────────────────────────
 let atSMS = null;
@@ -74,26 +75,19 @@ const sendWhatsApp = async (to, message) => {
   }
 };
 
-// ─── Send via channel ─────────────────────────────────────────────────────────
+// ─── Send via channel — auto-adds opt-out footer to SMS ───────────────────────
 const sendMessage = async ({ phone, message, channel }) => {
   const result = { sms: null, whatsapp: null };
+  const finalMessage = appendOptOutFooter(message, channel);
 
   if (channel === 'SMS' || channel === 'Both') {
-    result.sms = await sendSMS(phone, message);
+    result.sms = await sendSMS(phone, finalMessage);
   }
   if (channel === 'WhatsApp' || channel === 'Both') {
-    result.whatsapp = await sendWhatsApp(phone, message);
+    result.whatsapp = await sendWhatsApp(phone, message); // no footer needed on WA
   }
 
   return result;
-};
-
-// ─── Normalize Rwanda phone numbers ──────────────────────────────────────────
-const normalizePhone = (phone) => {
-  let clean = phone.toString().replace(/\D/g, '');
-  if (clean.startsWith('0') && clean.length === 10) clean = '250' + clean.slice(1);
-  if (!clean.startsWith('250') && clean.length === 9) clean = '250' + clean;
-  return '+' + clean;
 };
 
 module.exports = { sendMessage, sendSMS, sendWhatsApp, normalizePhone };

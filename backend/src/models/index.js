@@ -33,15 +33,20 @@ const Company = sequelize.define('Company', {
 }, { ...opts, tableName: 'companies' });
 
 // ─── Contact ──────────────────────────────────────────────────────────────────
+// ✅ NEW FIELDS: opted_out, opted_out_at, opt_out_reason
 const Contact = sequelize.define('Contact', {
-  id:         { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  company_id: { type: DataTypes.UUID, allowNull: false },
-  phone:      { type: DataTypes.STRING(20),  allowNull: false },
-  name:       { type: DataTypes.STRING(100), allowNull: true },
-  email:      { type: DataTypes.STRING(150), allowNull: true },
-  location:   { type: DataTypes.STRING(100), allowNull: true },
-  notes:      { type: DataTypes.TEXT,        allowNull: true },
-  status:     { type: DataTypes.ENUM('active','inactive'), defaultValue: 'active' },
+  id:             { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  company_id:     { type: DataTypes.UUID, allowNull: false },
+  phone:          { type: DataTypes.STRING(20),  allowNull: false },
+  name:           { type: DataTypes.STRING(100), allowNull: true },
+  email:          { type: DataTypes.STRING(150), allowNull: true },
+  location:       { type: DataTypes.STRING(100), allowNull: true },
+  notes:          { type: DataTypes.TEXT,        allowNull: true },
+  status:         { type: DataTypes.ENUM('active','inactive'), defaultValue: 'active' },
+  // ── Opt-out tracking (NEW) ──
+  opted_out:      { type: DataTypes.BOOLEAN, defaultValue: false },
+  opted_out_at:   { type: DataTypes.DATE,    allowNull: true },
+  opt_out_reason: { type: DataTypes.STRING(100), allowNull: true },
 }, { ...opts, tableName: 'contacts' });
 
 // ─── Message ──────────────────────────────────────────────────────────────────
@@ -68,6 +73,18 @@ const Message = sequelize.define('Message', {
   sent_at:             { type: DataTypes.DATE, allowNull: true },
 }, { ...opts, tableName: 'messages' });
 
+// ─── IncomingReply (NEW TABLE) ─────────────────────────────────────────────────
+// Stores every inbound SMS reply received — used for opt-out detection + audit log
+const IncomingReply = sequelize.define('IncomingReply', {
+  id:          { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  phone:       { type: DataTypes.STRING(20), allowNull: false },
+  contact_id:  { type: DataTypes.UUID, allowNull: true },
+  company_id:  { type: DataTypes.UUID, allowNull: true },
+  text:        { type: DataTypes.TEXT, allowNull: false },
+  was_opt_out: { type: DataTypes.BOOLEAN, defaultValue: false },
+  raw_payload: { type: DataTypes.JSONB, allowNull: true },
+}, { ...opts, tableName: 'incoming_replies' });
+
 // ─── Associations ─────────────────────────────────────────────────────────────
 Company.hasMany(Contact, { foreignKey: 'company_id', as: 'contacts', onDelete: 'CASCADE' });
 Contact.belongsTo(Company, { foreignKey: 'company_id', as: 'company' });
@@ -75,5 +92,7 @@ Company.hasMany(Message, { foreignKey: 'company_id', as: 'messages' });
 Message.belongsTo(Company, { foreignKey: 'company_id', as: 'company' });
 Contact.hasMany(Message, { foreignKey: 'contact_id', as: 'messages' });
 Message.belongsTo(Contact, { foreignKey: 'contact_id', as: 'contact' });
+Contact.hasMany(IncomingReply, { foreignKey: 'contact_id', as: 'replies' });
+IncomingReply.belongsTo(Contact, { foreignKey: 'contact_id', as: 'contact' });
 
-module.exports = { User, Company, Contact, Message };
+module.exports = { User, Company, Contact, Message, IncomingReply };
